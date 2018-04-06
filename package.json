@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/TwitchCoders/WarpBlastar/issues"
   },
-  "homepage": "https://github.com/TwitchCoders/WarpBlastar#readme"
+  "homepage": "https://github.com/TwitchCoders/WarpBlastar#readme",
+  "devDependencies": {
+    "http-server": "^0.11.1"
+  },
+  "dependencies": {
+    "phaser": "^3.3.0"
+  }
 }

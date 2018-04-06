@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 1</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.1.1/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                // gravity: { y: 10 },
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var platforms;
+
+    var game = new Phaser.Game(config);
+
+    function preload ()
+    {
+      this.load.image('sky', 'assets/sky.jpg');
+      this.load.spritesheet('ship', 'assets/ships.gif',{ frameWidth: 34, frameHeight: 65 });
+    }
+
+    function create ()
+    {
+      this.add.image(0, 100, 'sky');
+
+      platforms = this.physics.add.staticGroup();
+
+      player = this.physics.add.sprite(100, 450, 'ship');
+      player.setBounce(0.5);
+      player.setCollideWorldBounds(true);
+
+      cursors = this.input.keyboard.createCursorKeys();
+    }
+
+    function update ()
+    {
+        if (cursors.left.isDown)
+        {
+            player.setVelocityX(-160);
+        }
+        else if (cursors.right.isDown)
+        {
+            player.setVelocityX(160);
+        }
+        else if (cursors.up.isDown)
+        {
+            player.setVelocityY(-160);
+        }
+        else if (cursors.down.isDown)
+        {
+            player.setVelocityY(160);
+        }
+        else
+        {
+            player.setVelocityX(0);
+            player.setVelocityY(0);
+        }
+
+        // if (cursors.up.isDown && player.body.touching.down)
+        // {
+        //     player.setVelocityY(-330);
+        // }
+    }
+
+</script>
+
+</body>
+</html>
