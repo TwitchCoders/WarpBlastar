@@ -1,19 +1,42 @@
 {
-  "name": "warpblastar",
-  "version": "1.0.0",
-  "description": "A game we made during streaming",
-  "main": "index.js",
+  "name": "phaser3-typescript",
+  "version": "1.0.7",
+  "description": "Boilerplate, Tutorials, Cheat Sheets and more for Phaser 3 in Typescript",
+  "keywords": [
+    "Phaser",
+    "Phaser 3",
+    "Phaser3",
+    "TypeScript",
+    "Webpack",
+    "Tutorials",
+    "Game Examples"
+  ],
+  "devDependencies": {
+    "expose-loader": "0.7.5",
+    "ts-loader": "4.1.0",
+    "typescript": "2.7.2",
+    "webpack": "4.2.0",
+    "webpack-dev-server": "3.1.1",
+    "webpack-cli": "2.0.13"
+  },
+  "dependencies": {
+    "phaser": "3.3.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "webpack && webpack-dev-server --mode development",
+    "build": "webpack && webpack-dev-server --mode production"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TwitchCoders/WarpBlastar.git"
+    "url": "git+https://github.com/digitsensitive/phaser3-typescript.git"
   },
-  "author": "",
+  "author": {
+    "name": "digitsensitive",
+    "email": "digit.sensitivee@gmail.com"
+  },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/TwitchCoders/WarpBlastar/issues"
+    "url": "https://github.com/digitsensitive/phaser3-typescript/issues"
   },
-  "homepage": "https://github.com/TwitchCoders/WarpBlastar#readme"
+  "homepage": "https://github.com/digitsensitive/phaser3-typescript#readme"
 }
