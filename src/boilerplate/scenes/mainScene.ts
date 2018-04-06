@@ -14,10 +14,10 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.image("logo", "../assets/boilerplate/phaser.png");
+    this.load.image("player", "../assets/warpblastar/ship-level1.gif");
   }
 
   create(): void {
-    this.phaserSprite = this.add.sprite(400, 300, "logo");
+    this.phaserSprite = this.add.sprite(25, 22, "player");
   }
 }
