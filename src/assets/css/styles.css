@@ -1,3 +1,13 @@
 body {
-    background: #000;
+    background: black;
+    display: table;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+#container {
+    text-align: center;
+    display: table-cell;
+    vertical-align: middle;
 }
