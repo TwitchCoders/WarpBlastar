@@ -16,7 +16,7 @@ class Level1 extends Phaser.Scene {
     create() {
         console.log(this);
         this.add.image(0, 100, 'sky');
-        this.player = this.physics.add.sprite(Math.floor(Math.random() * Math.floor(400)) + 50, Math.floor(Math.random() * Math.floor(500)) + 50, 'ship');
+        this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 750), Phaser.Math.RND.integerInRange(50, 450), 'ship');
         this.player.angle = -90;
         this.player.setDisplaySize(50, 50);
         this.player.setBounce(0.5);
