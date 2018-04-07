@@ -57,7 +57,7 @@ function create() {
 
     this.add.image(0, 100, 'space');
     scoreText = this.add.text(10, 10, 'score: 0', { fontSize: '16px', fill: '#fff' });
-    debugText = this.add.text(800, 600, 'Asteroids --- | Missiles ---').setDepth(1000).setFont('14px Arial').setColor('#66ff66').setShadow(2, 2, "#333333", 2).setAlign('right');
+    debugText = this.add.text(800, 600, 'Asteroids --- | Missiles ---').setDepth(1000).setFont('14px Arial').setColor('#66ff66').setShadow(2, 2, '#333333', 2).setAlign('right');
     debugText.setOrigin(1);
 
     this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 750), Phaser.Math.RND.integerInRange(50, 450), 'ship');
@@ -126,7 +126,7 @@ function update() {
 
 function createAsteroids() {
     for (let i = 0; i < Phaser.Math.RND.integerInRange(0, 5); i++) {
-        const scale =  Phaser.Math.RND.integerInRange(30, 100);
+        const scale = Phaser.Math.RND.integerInRange(30, 100);
         const speed = Phaser.Math.RND.integerInRange(1, 5);
         const asteroid = this.physics.add.sprite(850, Phaser.Math.RND.integerInRange(scale, 600 - scale), 'asteroid');
         asteroid.setVelocityX(-50 * speed);
@@ -137,7 +137,21 @@ function createAsteroids() {
 }
 
 function checkBoundaries() {
-    // asteroids = asteroids.filter((asteroid) => asteroid.pos < 0);
+    asteroids = asteroids.filter((asteroid) => {
+        if (asteroid.x < 0) {
+            asteroid.disableBody(true, true);
+            return false;
+        }
+        return true;
+    });
+
+    missiles = missiles.filter((missile) => {
+        if (missile.x > 800) {
+            missile.disableBody(true, true);
+            return false;
+        }
+        return true;
+    });
 }
 
 function shootAsteroid(missile, asteroid) {
@@ -149,6 +163,7 @@ function shootAsteroid(missile, asteroid) {
     score += 10;
     scoreText.setText('score: ' + score);
     missiles = missiles.filter((item) => item !== missile);
+    asteroids = asteroids.filter((item) => item !== asteroid);
 
 }
 
@@ -159,7 +174,7 @@ function hitAsteroid(player, asteroid) {
     this.explosionSound.play();
     this.gameoverSound.play();
 
-    const gameOver = this.add.text(400, 300, 'GAME OVER').setDepth(1000).setFont('64px Arial').setColor('#ff6666').setShadow(2, 2, "#333333", 2).setAlign('center');
+    const gameOver = this.add.text(400, 300, 'GAME OVER').setDepth(1000).setFont('64px Arial').setColor('#ff6666').setShadow(2, 2, '#333333', 2).setAlign('center');
     gameOver.setOrigin(0.5);
 }
 
