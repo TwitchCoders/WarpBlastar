@@ -10,12 +10,15 @@ class Level1 extends Phaser.Scene {
         this.load.image('sky', 'src/assets/sky.jpg');
         this.load.image('ship', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Ships/spaceShips_001.png');
         this.load.image('missile', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Missiles/spaceMissiles_001.png');
+        this.load.image('asteroid', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Meteors/spaceMeteors_001.png');
         this.load.audio('fire', 'src/assets/soundfx/gameburp/TECH WEAPON Gun Shot Phaser Down 02.wav');
+        this.load.audio('explode', 'src/assets/soundfx/gameburp/EXPLOSION Bang 04.wav');
     }
 
     create() {
         console.log(this);
         this.add.image(0, 100, 'sky');
+
         this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 750), Phaser.Math.RND.integerInRange(50, 450), 'ship');
         this.player.angle = -90;
         this.player.setDisplaySize(50, 50);
@@ -28,7 +31,14 @@ class Level1 extends Phaser.Scene {
         this.input.keyboard.addKeyCapture([Phaser.Input.Keyboard.KeyCodes.SPACE]);
 
         this.fireSound = this.sound.add('fire');
-        this.fireSound.volume = 0.1;
+        this.fireSound.volume = 0.04;
+
+        this.explosionSound = this.sound.add('explode');
+        this.explosionSound.volume = 0.1;
+
+        this.asteroid = this.physics.add.sprite(850, Phaser.Math.RND.integerInRange(100, 700), 'asteroid');
+        this.asteroid.setVelocityX(-50);
+        this.asteroid.setDisplaySize(100, 100);
     }
 
     update() {
@@ -59,6 +69,7 @@ class Level1 extends Phaser.Scene {
                 this.missile.angle = 90;
                 this.missile.setVelocityX(200);
                 this.fireSound.play();
+                this.physics.add.overlap(this.missile, this.asteroid, this.hitAsteroid, null, this);
             }
         } else if (this.fire.isUp) {
             this.firing = false;
@@ -67,5 +78,11 @@ class Level1 extends Phaser.Scene {
         // {
         //     player.setVelocityY(-330);
         // }
+    }
+
+    hitAsteroid(missile, asteroid) {
+        missile.disableBody(true, true);
+        asteroid.disableBody(true, true);
+        this.explosionSound.play();
     }
 }
