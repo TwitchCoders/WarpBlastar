@@ -3,7 +3,7 @@
 - Built while streaming on twitch https://www.twitch.tv/eddiejaoude
 - Using Phaser https://phaser.io
 
-![Screenshot](https://user-images.githubusercontent.com/624760/38438910-d0811ac4-39d3-11e8-8016-b0d96651263f.png)
+![Screenshot](https://user-images.githubusercontent.com/624760/38458097-d1845cd8-3a91-11e8-9c88-f5ef40b081f8.png)
 
 ## Quickstart
 
