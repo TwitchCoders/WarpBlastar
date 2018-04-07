@@ -21,9 +21,11 @@ let config = {
         create: create,
         update: update,
         extend: {
+            checkBoundaries: checkBoundaries,
             createAsteroids: createAsteroids,
             shootAsteroid: shootAsteroid,
-            hitAsteroid: hitAsteroid
+            hitAsteroid: hitAsteroid,
+            updateDebugInfo: updateDebugInfo
         }
     }
 };
@@ -34,20 +36,29 @@ let asteroids = [];
 let missiles = [];
 let firing = false;
 let score = 0;
+let scoreText;
+let debugText;
 
 function preload() {
     this.load.image('space', 'src/assets/space.jpg');
     this.load.image('ship', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Ships/spaceShips_001.png');
     this.load.image('missile', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Missiles/spaceMissiles_001.png');
     this.load.image('asteroid', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Meteors/spaceMeteors_001.png');
+    this.load.audio('background', 'src/assets/Magna_Ingress_-_10_-_Letting_Go.mp3');
     this.load.audio('fire', 'src/assets/soundfx/gameburp/TECH WEAPON Gun Shot Phaser Down 02.wav');
     this.load.audio('explode', 'src/assets/soundfx/gameburp/EXPLOSION Bang 04.wav');
     this.load.audio('gameover', 'src/assets/soundfx/gameburp/NEGATIVE Failure Descending Chime 05.wav');
 }
 
 function create() {
+    this.backgroundMusic = this.sound.add('background');
+    this.backgroundMusic.volume = 0.05;
+    this.backgroundMusic.play();
+
     this.add.image(0, 100, 'space');
     scoreText = this.add.text(10, 10, 'score: 0', { fontSize: '16px', fill: '#fff' });
+    debugText = this.add.text(800, 600, 'Asteroids --- | Missiles ---').setDepth(1000).setFont('14px Arial').setColor('#66ff66').setShadow(2, 2, "#333333", 2).setAlign('right');
+    debugText.setOrigin(1);
 
     this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 750), Phaser.Math.RND.integerInRange(50, 450), 'ship');
     this.player.angle = -90;
@@ -69,8 +80,9 @@ function create() {
     this.gameoverSound = this.sound.add('gameover');
     this.gameoverSound.volume = 0.2;
 
-    this.createAsteroids();
     this.time.addEvent({ delay: 2000, callback: this.createAsteroids, callbackScope: this, loop: true });
+    this.time.addEvent({ delay: 1000, callback: this.checkBoundaries, callbackScope: this, loop: true });
+    this.time.addEvent({ delay: 100, callback: this.updateDebugInfo, callbackScope: this, loop: true });
 }
 
 function update() {
@@ -113,7 +125,6 @@ function update() {
 }
 
 function createAsteroids() {
-    console.log('adding');
     for (let i = 0; i < Phaser.Math.RND.integerInRange(0, 5); i++) {
         const scale =  Phaser.Math.RND.integerInRange(30, 100);
         const speed = Phaser.Math.RND.integerInRange(1, 5);
@@ -125,6 +136,10 @@ function createAsteroids() {
     }
 }
 
+function checkBoundaries() {
+    // asteroids = asteroids.filter((asteroid) => asteroid.pos < 0);
+}
+
 function shootAsteroid(missile, asteroid) {
     missile.disableBody(true, true);
     asteroid.disableBody(true, true);
@@ -133,7 +148,8 @@ function shootAsteroid(missile, asteroid) {
 
     score += 10;
     scoreText.setText('score: ' + score);
-    missiles.filter((item) => item !== missile);
+    missiles = missiles.filter((item) => item !== missile);
+
 }
 
 function hitAsteroid(player, asteroid) {
@@ -143,6 +159,10 @@ function hitAsteroid(player, asteroid) {
     this.explosionSound.play();
     this.gameoverSound.play();
 
-    gameOver = this.add.text(400, 300, 'GAME OVER').setDepth(1000).setFont('64px Arial').setColor('#ff6666').setShadow(2, 2, "#333333", 2).setAlign('center');
+    const gameOver = this.add.text(400, 300, 'GAME OVER').setDepth(1000).setFont('64px Arial').setColor('#ff6666').setShadow(2, 2, "#333333", 2).setAlign('center');
     gameOver.setOrigin(0.5);
+}
+
+function updateDebugInfo() {
+    debugText.setText(`Asteroids ${asteroids.length} | Missiles ${missiles.length}`);
 }
