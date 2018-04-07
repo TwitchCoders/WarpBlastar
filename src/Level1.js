@@ -3,7 +3,8 @@ class Level1 extends Phaser.Scene {
     constructor() {
         super({ key: 'Level1' });
 
-        this.
+        this.asteroids = [];
+        this.missiles = [];
         this.firing = false;
         this.score = 0;
     }
@@ -15,6 +16,7 @@ class Level1 extends Phaser.Scene {
         this.load.image('asteroid', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Meteors/spaceMeteors_001.png');
         this.load.audio('fire', 'src/assets/soundfx/gameburp/TECH WEAPON Gun Shot Phaser Down 02.wav');
         this.load.audio('explode', 'src/assets/soundfx/gameburp/EXPLOSION Bang 04.wav');
+        this.load.audio('gameover', 'src/assets/soundfx/gameburp/NEGATIVE Failure Descending Chime 05.wav');
     }
 
     create() {
@@ -38,19 +40,23 @@ class Level1 extends Phaser.Scene {
 
         this.explosionSound = this.sound.add('explode');
         this.explosionSound.volume = 0.1;
-        
-        this.asteroids = this.createAsteroids();
+
+        this.gameoverSound = this.sound.add('gameover');
+        this.gameoverSound.volume = 0.2;
+
+        this.createAsteroids();
+        // this.time.addEvent({ delay: 2000, callback: this.createAsteroids(), callbackScope: this, loop: true });
     }
 
     createAsteroids() {
-        const asteroids = [];
-        for(let i = 0; i < 10; i++) {
+        console.log('adding');
+        for(let i = 0; i < Phaser.Math.RND.integerInRange(0, 5); i++) {
             const asteroid = this.physics.add.sprite(850, Phaser.Math.RND.integerInRange(100, 700), 'asteroid');
             asteroid.setVelocityX(-50);
             asteroid.setDisplaySize(100, 100);
-            asteroids.push(asteroid);
+            this.missiles.map((missile) => this.physics.add.overlap(missile, asteroid, this.shootAsteroid, null, this));
+            this.asteroids.push(asteroid);
         }
-        return asteroids;
     }
     
     update() {
@@ -84,6 +90,8 @@ class Level1 extends Phaser.Scene {
                 missile.angle = 90;
                 missile.setVelocityX(200);
                 this.asteroids.map((asteroid) => this.physics.add.overlap(missile, asteroid, this.shootAsteroid, null, this));
+                console.log(missile);
+                this.missiles.push(missile);
 
             }
         } else if (this.fire.isUp) {
@@ -96,12 +104,15 @@ class Level1 extends Phaser.Scene {
         asteroid.disableBody(true, true);
         this.explosionSound.play();
         this.score += 10;
-        this.scoreText.setText('Score: ' + this.score);
+        this.scoreText.setText('score: ' + this.score);
+        this.missiles.filter((item) => item !== missile);
     }
 
     hitAsteroid(player, asteroid) {
         player.disableBody(true, true);
         asteroid.disableBody(true, true);
         this.explosionSound.play();
+        this.scoreText = this.add.text(400, 300, 'GAME OVER', { fontSize: '64px', fill: '#f00' });
+        this.gameoverSound.play();
     }
 }
