@@ -3,7 +3,9 @@ class Level1 extends Phaser.Scene {
     constructor() {
         super({ key: 'Level1' });
 
+        this.
         this.firing = false;
+        this.score = 0;
     }
 
     preload() {
@@ -18,6 +20,7 @@ class Level1 extends Phaser.Scene {
     create() {
         console.log(this);
         this.add.image(0, 100, 'sky');
+        this.scoreText = this.add.text(10, 10, 'score: 0', { fontSize: '16px', fill: '#fff' });
 
         this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 750), Phaser.Math.RND.integerInRange(50, 450), 'ship');
         this.player.angle = -90;
@@ -35,12 +38,21 @@ class Level1 extends Phaser.Scene {
 
         this.explosionSound = this.sound.add('explode');
         this.explosionSound.volume = 0.1;
-
-        this.asteroid = this.physics.add.sprite(850, Phaser.Math.RND.integerInRange(100, 700), 'asteroid');
-        this.asteroid.setVelocityX(-50);
-        this.asteroid.setDisplaySize(100, 100);
+        
+        this.asteroids = this.createAsteroids();
     }
 
+    createAsteroids() {
+        const asteroids = [];
+        for(let i = 0; i < 10; i++) {
+            const asteroid = this.physics.add.sprite(850, Phaser.Math.RND.integerInRange(100, 700), 'asteroid');
+            asteroid.setVelocityX(-50);
+            asteroid.setDisplaySize(100, 100);
+            asteroids.push(asteroid);
+        }
+        return asteroids;
+    }
+    
     update() {
         if (this.cursors.left.isDown) {
             this.player.setVelocityX(-160);
@@ -62,26 +74,33 @@ class Level1 extends Phaser.Scene {
             this.player.setVelocityY(0);
         }
 
+        this.asteroids.map((asteroid) => this.physics.add.overlap(this.player, asteroid, this.hitAsteroid, null, this));
+
         if (this.fire.isDown) {
             if (!this.firing) {
                 this.firing = true;
-                this.missile = this.physics.add.image(this.player.x + 30, this.player.y, 'missile');
-                this.missile.angle = 90;
-                this.missile.setVelocityX(200);
                 this.fireSound.play();
-                this.physics.add.overlap(this.missile, this.asteroid, this.hitAsteroid, null, this);
+                const missile = this.physics.add.image(this.player.x + 30, this.player.y, 'missile');
+                missile.angle = 90;
+                missile.setVelocityX(200);
+                this.asteroids.map((asteroid) => this.physics.add.overlap(missile, asteroid, this.shootAsteroid, null, this));
+
             }
         } else if (this.fire.isUp) {
             this.firing = false;
         }
-        // if (cursors.up.isDown && player.body.touching.down)
-        // {
-        //     player.setVelocityY(-330);
-        // }
     }
 
-    hitAsteroid(missile, asteroid) {
+    shootAsteroid(missile, asteroid) {
         missile.disableBody(true, true);
+        asteroid.disableBody(true, true);
+        this.explosionSound.play();
+        this.score += 10;
+        this.scoreText.setText('Score: ' + this.score);
+    }
+
+    hitAsteroid(player, asteroid) {
+        player.disableBody(true, true);
         asteroid.disableBody(true, true);
         this.explosionSound.play();
     }
