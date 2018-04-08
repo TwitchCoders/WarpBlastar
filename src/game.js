@@ -131,6 +131,7 @@ function createAsteroids() {
         const speed = Phaser.Math.RND.integerInRange(1, 5);
         const asteroid = this.physics.add.sprite(850, Phaser.Math.RND.integerInRange(scale, 600 - scale), 'asteroid');
         asteroid.setVelocityX(-50 * speed);
+        asteroid.setVelocityY(Phaser.Math.RND.integerInRange(-20, 20) * speed);
         asteroid.setDisplaySize(scale, scale);
         asteroid.value = Math.ceil(((150-scale) * (5 * speed))/200);
         missiles.map((missile) => this.physics.add.overlap(missile, asteroid, this.shootAsteroid, null, this));
