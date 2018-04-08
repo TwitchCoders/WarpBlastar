@@ -9,7 +9,7 @@
 
 - Clone or Download the repo
 - Install dependencies `npm install`
-- Run the server locally `./node_modules/http-server/bin/http-server .`
+- Run the server locally `npm start`
 - Visit http://127.0.0.1:8080
 
 ## Floobits for collaboration
