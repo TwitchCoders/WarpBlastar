@@ -128,19 +128,28 @@ function update() {
     });
 }
 
-function createAsteroids() {
+function createAsteroids(location, generation = 0) {
+    if (generation > 1) {
+        return null;
+    }
+
     for (let i = 0; i < Phaser.Math.RND.integerInRange(0, 5); i++) {
         const scale = Phaser.Math.RND.integerInRange(30, 100);
         const speed = Phaser.Math.RND.integerInRange(1, 5);
 
-        const asteroid = this.physics.add.sprite(850, Phaser.Math.RND.integerInRange(scale, 600 - scale), 'asteroid');
+        if (!location) {
+            location = new Phaser.Geom.Point(850, Phaser.Math.RND.integerInRange(scale, 600 - scale));
+        }
+
+        const asteroid = this.physics.add.sprite(location.x, location.y, 'asteroid');
         asteroid.setVelocityX(-50 * speed);
         asteroid.setVelocityY(Phaser.Math.RND.integerInRange(-20, 20) * speed);
         asteroid.setDisplaySize(scale, scale);
+        asteroid.generation = generation;
 
         const rotate = (120 - scale);
-        asteroid.rotationValue = Phaser.Math.RND.integerInRange(-rotate, rotate)/500;
-        asteroid.scoreValue = Phaser.Math.CeilTo(((150-scale) * (5 * speed))/200);
+        asteroid.rotationValue = Phaser.Math.RND.integerInRange(-rotate, rotate) / 500;
+        asteroid.scoreValue = Phaser.Math.CeilTo(((150 - scale) * (5 * speed)) / 200);
 
         missiles.map((missile) => this.physics.add.overlap(missile, asteroid, this.shootAsteroid, null, this));
         asteroids.push(asteroid);
@@ -171,12 +180,13 @@ function shootAsteroid(missile, asteroid) {
 
     this.explosionSound.play();
 
-    console.log(asteroid);
+    const generation = asteroid.generation + 1;
+    this.createAsteroids(new Phaser.Geom.Point(asteroid.x, asteroid.y), generation);
+
     score += asteroid.scoreValue;
     scoreText.setText('score: ' + score);
     missiles = missiles.filter((item) => item !== missile);
     asteroids = asteroids.filter((item) => item !== asteroid);
-
 }
 
 function hitAsteroid(player, asteroid) {
