@@ -132,6 +132,7 @@ function createAsteroids() {
         const asteroid = this.physics.add.sprite(850, Phaser.Math.RND.integerInRange(scale, 600 - scale), 'asteroid');
         asteroid.setVelocityX(-50 * speed);
         asteroid.setDisplaySize(scale, scale);
+        asteroid.value = Math.ceil(((150-scale) * (5 * speed))/200);
         missiles.map((missile) => this.physics.add.overlap(missile, asteroid, this.shootAsteroid, null, this));
         asteroids.push(asteroid);
     }
@@ -161,7 +162,8 @@ function shootAsteroid(missile, asteroid) {
 
     this.explosionSound.play();
 
-    score += 10;
+    console.log(asteroid);
+    score += asteroid.value;
     scoreText.setText('score: ' + score);
     missiles = missiles.filter((item) => item !== missile);
     asteroids = asteroids.filter((item) => item !== asteroid);
