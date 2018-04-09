@@ -2,6 +2,7 @@ let config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
+    parent: 'container',
     physics: {
         default: 'arcade',
         arcade: {
@@ -57,7 +58,7 @@ function create() {
 
     this.add.image(0, 100, 'space');
     scoreText = this.add.text(10, 10, 'score: 0', { fontSize: '16px', fill: '#fff' });
-    debugText = this.add.text(800, 600, 'Asteroids --- | Missiles ---').setDepth(1000).setFont('14px Arial').setColor('#66ff66').setShadow(2, 2, "#333333", 2).setAlign('right');
+    debugText = this.add.text(800, 600, 'Asteroids --- | Missiles ---').setDepth(1000).setFont('14px Arial').setColor('#66ff66').setShadow(2, 2, '#333333', 2).setAlign('right');
     debugText.setOrigin(1);
 
     this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 750), Phaser.Math.RND.integerInRange(50, 450), 'ship');
@@ -106,8 +107,6 @@ function update() {
         this.player.setVelocityY(0);
     }
 
-    asteroids.map((asteroid) => this.physics.add.overlap(this.player, asteroid, this.hitAsteroid, null, this));
-
     if (this.fire.isDown) {
         if (!firing) {
             firing = true;
@@ -122,22 +121,57 @@ function update() {
     } else if (this.fire.isUp) {
         firing = false;
     }
+
+    asteroids.forEach((asteroid) => {
+        this.physics.add.overlap(this.player, asteroid, this.hitAsteroid, null, this);
+        asteroid.rotation += asteroid.rotationValue;
+    });
 }
 
-function createAsteroids() {
+function createAsteroids(location, generation = 0) {
+    if (generation > 1) {
+        return null;
+    }
+
     for (let i = 0; i < Phaser.Math.RND.integerInRange(0, 5); i++) {
-        const scale =  Phaser.Math.RND.integerInRange(30, 100);
+        const scale = Phaser.Math.RND.integerInRange(30, 100);
         const speed = Phaser.Math.RND.integerInRange(1, 5);
-        const asteroid = this.physics.add.sprite(850, Phaser.Math.RND.integerInRange(scale, 600 - scale), 'asteroid');
+
+        if (!location) {
+            location = new Phaser.Geom.Point(850, Phaser.Math.RND.integerInRange(scale, 600 - scale));
+        }
+
+        const asteroid = this.physics.add.sprite(location.x, location.y, 'asteroid');
         asteroid.setVelocityX(-50 * speed);
+        asteroid.setVelocityY(Phaser.Math.RND.integerInRange(-20, 20) * speed);
         asteroid.setDisplaySize(scale, scale);
+        asteroid.generation = generation;
+
+        const rotate = (120 - scale);
+        asteroid.rotationValue = Phaser.Math.RND.integerInRange(-rotate, rotate) / 500;
+        asteroid.scoreValue = Phaser.Math.CeilTo(((150 - scale) * (5 * speed)) / 200);
+
         missiles.map((missile) => this.physics.add.overlap(missile, asteroid, this.shootAsteroid, null, this));
         asteroids.push(asteroid);
     }
 }
 
 function checkBoundaries() {
-    // asteroids = asteroids.filter((asteroid) => asteroid.pos < 0);
+    asteroids = asteroids.filter((asteroid) => {
+        if (asteroid.x < 0) {
+            asteroid.disableBody(true, true);
+            return false;
+        }
+        return true;
+    });
+
+    missiles = missiles.filter((missile) => {
+        if (missile.x > 800) {
+            missile.disableBody(true, true);
+            return false;
+        }
+        return true;
+    });
 }
 
 function shootAsteroid(missile, asteroid) {
@@ -146,10 +180,13 @@ function shootAsteroid(missile, asteroid) {
 
     this.explosionSound.play();
 
-    score += 10;
+    const generation = asteroid.generation + 1;
+    this.createAsteroids(new Phaser.Geom.Point(asteroid.x, asteroid.y), generation);
+
+    score += asteroid.scoreValue;
     scoreText.setText('score: ' + score);
     missiles = missiles.filter((item) => item !== missile);
-
+    asteroids = asteroids.filter((item) => item !== asteroid);
 }
 
 function hitAsteroid(player, asteroid) {
@@ -159,7 +196,7 @@ function hitAsteroid(player, asteroid) {
     this.explosionSound.play();
     this.gameoverSound.play();
 
-    const gameOver = this.add.text(400, 300, 'GAME OVER').setDepth(1000).setFont('64px Arial').setColor('#ff6666').setShadow(2, 2, "#333333", 2).setAlign('center');
+    const gameOver = this.add.text(400, 300, 'GAME OVER').setDepth(1000).setFont('64px Arial').setColor('#ff6666').setShadow(2, 2, '#333333', 2).setAlign('center');
     gameOver.setOrigin(0.5);
 }
 
