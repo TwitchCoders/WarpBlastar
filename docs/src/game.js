@@ -208,21 +208,19 @@ function hitAsteroid(player, asteroid) {
     asteroid.disableBody(true, true);
 
     const shield = player.powers.find((power) => power.name === 'shield');
-
-    if (shield) {
+    if (shield !== undefined) {
         player.powers = player.powers.filter((power) => power.name !== 'shield');
         this.displayHealth();
         return;
     }
 
+    healthBar.pop().disableBody(true, true);
     if (this.player.health > 1) {
-        healthBar.pop().disableBody(true, true);
         this.player.health -= 1;
         return;
     }
 
     player.disableBody(true, true);
-
     this.explosionSound.play();
     this.gameoverSound.play();
 
