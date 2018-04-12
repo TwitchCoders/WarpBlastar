@@ -26,7 +26,10 @@ let config = {
             createAsteroids: createAsteroids,
             shootAsteroid: shootAsteroid,
             hitAsteroid: hitAsteroid,
-            updateDebugInfo: updateDebugInfo
+            updateDebugInfo: updateDebugInfo,
+            displayHealth: displayHealth,
+            createPowerUp: createPowerUp,
+            gainPower: gainPower
         }
     }
 };
@@ -35,6 +38,7 @@ let game = new Phaser.Game(config);
 
 let asteroids = [];
 let missiles = [];
+let healthBar = [];
 let firing = false;
 let score = 0;
 let scoreText;
@@ -45,6 +49,9 @@ function preload() {
     this.load.image('ship', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Ships/spaceShips_001.png');
     this.load.image('missile', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Missiles/spaceMissiles_001.png');
     this.load.image('asteroid', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Meteors/spaceMeteors_001.png');
+    this.load.image('powerUp', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Astronauts/spaceAstronauts_016.png');
+    this.load.image('heart', 'src/assets/custom/heart.png');
+    this.load.image('shield', 'src/assets/custom/heart-shield.png');
     this.load.audio('background', 'src/assets/Magna_Ingress_-_10_-_Letting_Go.mp3');
     this.load.audio('fire', 'src/assets/soundfx/gameburp/TECH WEAPON Gun Shot Phaser Down 02.wav');
     this.load.audio('explode', 'src/assets/soundfx/gameburp/EXPLOSION Bang 04.wav');
@@ -61,11 +68,15 @@ function create() {
     debugText = this.add.text(800, 600, 'Asteroids --- | Missiles ---').setDepth(1000).setFont('14px Arial').setColor('#66ff66').setShadow(2, 2, '#333333', 2).setAlign('right');
     debugText.setOrigin(1);
 
-    this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 750), Phaser.Math.RND.integerInRange(50, 450), 'ship');
+    this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 100), Phaser.Math.RND.integerInRange(50, 450), 'ship');
+    this.player.powers = [];
+    this.player.depth = 20;
     this.player.angle = -90;
+    this.player.health = 5;
     this.player.setDisplaySize(50, 50);
     this.player.setBounce(0.5);
     this.player.setCollideWorldBounds(true);
+    this.displayHealth();
 
     this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -84,6 +95,7 @@ function create() {
     this.time.addEvent({ delay: 2000, callback: this.createAsteroids, callbackScope: this, loop: true });
     this.time.addEvent({ delay: 1000, callback: this.checkBoundaries, callbackScope: this, loop: true });
     this.time.addEvent({ delay: 100, callback: this.updateDebugInfo, callbackScope: this, loop: true });
+    this.time.addEvent({ delay: 5000, callback: this.createPowerUp, callbackScope: this, loop: true });
 }
 
 function update() {
@@ -128,13 +140,13 @@ function update() {
     });
 }
 
-function createAsteroids(location, generation = 0) {
-    if (generation > 1) {
+function createAsteroids(location, generation = 1, scale = 100) {
+    if (generation > 2) {
         return null;
     }
 
     for (let i = 0; i < Phaser.Math.RND.integerInRange(0, 5); i++) {
-        const scale = Phaser.Math.RND.integerInRange(30, 100);
+        scale = Phaser.Math.RND.integerInRange(30, scale);
         const speed = Phaser.Math.RND.integerInRange(1, 5);
 
         if (!location) {
@@ -142,9 +154,12 @@ function createAsteroids(location, generation = 0) {
         }
 
         const asteroid = this.physics.add.sprite(location.x, location.y, 'asteroid');
+        asteroid.depth = 5;
         asteroid.setVelocityX(-50 * speed);
-        asteroid.setVelocityY(Phaser.Math.RND.integerInRange(-20, 20) * speed);
+        asteroid.setVelocityY(Phaser.Math.RND.integerInRange(-20 * generation, 20 * generation) * speed);
         asteroid.setDisplaySize(scale, scale);
+
+        asteroid.scale = scale;
         asteroid.generation = generation;
 
         const rotate = (120 - scale);
@@ -181,7 +196,7 @@ function shootAsteroid(missile, asteroid) {
     this.explosionSound.play();
 
     const generation = asteroid.generation + 1;
-    this.createAsteroids(new Phaser.Geom.Point(asteroid.x, asteroid.y), generation);
+    this.createAsteroids(new Phaser.Geom.Point(asteroid.x, asteroid.y), generation, asteroid.scale);
 
     score += asteroid.scoreValue;
     scoreText.setText('score: ' + score);
@@ -190,11 +205,29 @@ function shootAsteroid(missile, asteroid) {
 }
 
 function hitAsteroid(player, asteroid) {
-    player.disableBody(true, true);
     asteroid.disableBody(true, true);
+
+    const shield = player.powers.find((power) => power.name === 'shield');
+
+    if (shield) {
+        player.powers = player.powers.filter((power) => power.name !== 'shield');
+        this.displayHealth();
+        return;
+    }
+
+    if (this.player.health > 1) {
+        healthBar.pop().disableBody(true, true);
+        this.player.health -= 1;
+        return;
+    }
+
+    player.disableBody(true, true);
 
     this.explosionSound.play();
     this.gameoverSound.play();
+
+    missiles.forEach((missile) => missile.disableBody(true, true));
+    missiles = [];
 
     const gameOver = this.add.text(400, 300, 'GAME OVER').setDepth(1000).setFont('64px Arial').setColor('#ff6666').setShadow(2, 2, '#333333', 2).setAlign('center');
     gameOver.setOrigin(0.5);
@@ -202,4 +235,30 @@ function hitAsteroid(player, asteroid) {
 
 function updateDebugInfo() {
     debugText.setText(`Asteroids ${asteroids.length} | Missiles ${missiles.length}`);
+}
+
+function gainPower(player, power) {
+    player.powers.push({ name: 'shield' });
+    power.disableBody(true, true);
+    this.displayHealth(true);
+}
+
+function displayHealth(shield = false) {
+    while(healthBar.length > 0) {
+        healthBar.pop().disableBody(true, true);
+    }
+
+    for (let i = 0; i < this.player.health; i++) {
+        const heart = this.physics.add.sprite(25 + (50 * i), 570, shield ? 'shield' : 'heart');
+        heart.depth = 10;
+        healthBar.push(heart);
+    }
+}
+
+function createPowerUp() {
+    const powerUp = this.physics.add.sprite(800, Phaser.Math.RND.integerInRange(50, 550), 'powerUp');
+    powerUp.angle = 180;
+    powerUp.setVelocityX(-200);
+    powerUp.setVelocityY(Phaser.Math.RND.integerInRange(-200, 200));
+    this.physics.add.overlap(this.player, powerUp, this.gainPower, null, this);
 }
