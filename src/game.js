@@ -198,6 +198,9 @@ function hitAsteroid(player, asteroid) {
     this.explosionSound.play();
     this.gameoverSound.play();
 
+    missiles.forEach((missile) => missile.disableBody(true, true));
+    missiles = [];
+
     const gameOver = this.add.text(400, 300, 'GAME OVER').setDepth(1000).setFont('64px Arial').setColor('#ff6666').setShadow(2, 2, '#333333', 2).setAlign('center');
     gameOver.setOrigin(0.5);
 }
