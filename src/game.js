@@ -128,13 +128,13 @@ function update() {
     });
 }
 
-function createAsteroids(location, generation = 0) {
-    if (generation > 1) {
+function createAsteroids(location, generation = 1, scale = 100) {
+    if (generation > 2) {
         return null;
     }
 
     for (let i = 0; i < Phaser.Math.RND.integerInRange(0, 5); i++) {
-        const scale = Phaser.Math.RND.integerInRange(30, 100);
+        scale = Phaser.Math.RND.integerInRange(30, scale);
         const speed = Phaser.Math.RND.integerInRange(1, 5);
 
         if (!location) {
@@ -143,8 +143,10 @@ function createAsteroids(location, generation = 0) {
 
         const asteroid = this.physics.add.sprite(location.x, location.y, 'asteroid');
         asteroid.setVelocityX(-50 * speed);
-        asteroid.setVelocityY(Phaser.Math.RND.integerInRange(-20, 20) * speed);
+        asteroid.setVelocityY(Phaser.Math.RND.integerInRange(-20 * generation, 20 * generation) * speed);
         asteroid.setDisplaySize(scale, scale);
+
+        asteroid.scale = scale;
         asteroid.generation = generation;
 
         const rotate = (120 - scale);
@@ -181,7 +183,7 @@ function shootAsteroid(missile, asteroid) {
     this.explosionSound.play();
 
     const generation = asteroid.generation + 1;
-    this.createAsteroids(new Phaser.Geom.Point(asteroid.x, asteroid.y), generation);
+    this.createAsteroids(new Phaser.Geom.Point(asteroid.x, asteroid.y), generation, asteroid.scale);
 
     score += asteroid.scoreValue;
     scoreText.setText('score: ' + score);
