@@ -35,6 +35,7 @@ let game = new Phaser.Game(config);
 
 let asteroids = [];
 let missiles = [];
+let healthBar = [];
 let firing = false;
 let score = 0;
 let scoreText;
@@ -45,6 +46,7 @@ function preload() {
     this.load.image('ship', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Ships/spaceShips_001.png');
     this.load.image('missile', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Missiles/spaceMissiles_001.png');
     this.load.image('asteroid', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Meteors/spaceMeteors_001.png');
+    this.load.image('heart', 'src/assets/custom/heart.png');
     this.load.audio('background', 'src/assets/Magna_Ingress_-_10_-_Letting_Go.mp3');
     this.load.audio('fire', 'src/assets/soundfx/gameburp/TECH WEAPON Gun Shot Phaser Down 02.wav');
     this.load.audio('explode', 'src/assets/soundfx/gameburp/EXPLOSION Bang 04.wav');
@@ -61,11 +63,19 @@ function create() {
     debugText = this.add.text(800, 600, 'Asteroids --- | Missiles ---').setDepth(1000).setFont('14px Arial').setColor('#66ff66').setShadow(2, 2, '#333333', 2).setAlign('right');
     debugText.setOrigin(1);
 
-    this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 750), Phaser.Math.RND.integerInRange(50, 450), 'ship');
+    this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 100), Phaser.Math.RND.integerInRange(50, 450), 'ship');
+    this.player.depth = 20;
     this.player.angle = -90;
+    this.player.health = 5;
     this.player.setDisplaySize(50, 50);
     this.player.setBounce(0.5);
     this.player.setCollideWorldBounds(true);
+
+    for (let i = 0; i < this.player.health; i++) {
+        const heart = this.physics.add.sprite(25 + (50 * i), 570, 'heart');
+        heart.depth = 10;
+        healthBar.push(heart);
+    }
 
     this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -142,6 +152,7 @@ function createAsteroids(location, generation = 1, scale = 100) {
         }
 
         const asteroid = this.physics.add.sprite(location.x, location.y, 'asteroid');
+        asteroid.depth = 5;
         asteroid.setVelocityX(-50 * speed);
         asteroid.setVelocityY(Phaser.Math.RND.integerInRange(-20 * generation, 20 * generation) * speed);
         asteroid.setDisplaySize(scale, scale);
@@ -192,8 +203,15 @@ function shootAsteroid(missile, asteroid) {
 }
 
 function hitAsteroid(player, asteroid) {
-    player.disableBody(true, true);
     asteroid.disableBody(true, true);
+    healthBar.pop().disableBody(true, true);
+
+    if (this.player.health > 1) {
+        this.player.health -= 1;
+        return;
+    }
+
+    player.disableBody(true, true);
 
     this.explosionSound.play();
     this.gameoverSound.play();
