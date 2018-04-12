@@ -26,7 +26,10 @@ let config = {
             createAsteroids: createAsteroids,
             shootAsteroid: shootAsteroid,
             hitAsteroid: hitAsteroid,
-            updateDebugInfo: updateDebugInfo
+            updateDebugInfo: updateDebugInfo,
+            displayHealth: displayHealth,
+            createPowerUp: createPowerUp,
+            gainPower: gainPower
         }
     }
 };
@@ -46,7 +49,9 @@ function preload() {
     this.load.image('ship', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Ships/spaceShips_001.png');
     this.load.image('missile', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Missiles/spaceMissiles_001.png');
     this.load.image('asteroid', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Meteors/spaceMeteors_001.png');
+    this.load.image('powerUp', 'src/assets/kenney_spaceshooterextension/PNG/Sprites/Astronauts/spaceAstronauts_016.png');
     this.load.image('heart', 'src/assets/custom/heart.png');
+    this.load.image('shield', 'src/assets/custom/heart-shield.png');
     this.load.audio('background', 'src/assets/Magna_Ingress_-_10_-_Letting_Go.mp3');
     this.load.audio('fire', 'src/assets/soundfx/gameburp/TECH WEAPON Gun Shot Phaser Down 02.wav');
     this.load.audio('explode', 'src/assets/soundfx/gameburp/EXPLOSION Bang 04.wav');
@@ -64,18 +69,14 @@ function create() {
     debugText.setOrigin(1);
 
     this.player = this.physics.add.sprite(Phaser.Math.RND.integerInRange(50, 100), Phaser.Math.RND.integerInRange(50, 450), 'ship');
+    this.player.powers = [];
     this.player.depth = 20;
     this.player.angle = -90;
     this.player.health = 5;
     this.player.setDisplaySize(50, 50);
     this.player.setBounce(0.5);
     this.player.setCollideWorldBounds(true);
-
-    for (let i = 0; i < this.player.health; i++) {
-        const heart = this.physics.add.sprite(25 + (50 * i), 570, 'heart');
-        heart.depth = 10;
-        healthBar.push(heart);
-    }
+    this.displayHealth();
 
     this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -94,6 +95,7 @@ function create() {
     this.time.addEvent({ delay: 2000, callback: this.createAsteroids, callbackScope: this, loop: true });
     this.time.addEvent({ delay: 1000, callback: this.checkBoundaries, callbackScope: this, loop: true });
     this.time.addEvent({ delay: 100, callback: this.updateDebugInfo, callbackScope: this, loop: true });
+    this.time.addEvent({ delay: 5000, callback: this.createPowerUp, callbackScope: this, loop: true });
 }
 
 function update() {
@@ -204,9 +206,17 @@ function shootAsteroid(missile, asteroid) {
 
 function hitAsteroid(player, asteroid) {
     asteroid.disableBody(true, true);
-    healthBar.pop().disableBody(true, true);
+
+    const shield = player.powers.find((power) => power.name === 'shield');
+
+    if (shield) {
+        player.powers = player.powers.filter((power) => power.name !== 'shield');
+        this.displayHealth();
+        return;
+    }
 
     if (this.player.health > 1) {
+        healthBar.pop().disableBody(true, true);
         this.player.health -= 1;
         return;
     }
@@ -225,4 +235,30 @@ function hitAsteroid(player, asteroid) {
 
 function updateDebugInfo() {
     debugText.setText(`Asteroids ${asteroids.length} | Missiles ${missiles.length}`);
+}
+
+function gainPower(player, power) {
+    player.powers.push({ name: 'shield' });
+    power.disableBody(true, true);
+    this.displayHealth(true);
+}
+
+function displayHealth(shield = false) {
+    while(healthBar.length > 0) {
+        healthBar.pop().disableBody(true, true);
+    }
+
+    for (let i = 0; i < this.player.health; i++) {
+        const heart = this.physics.add.sprite(25 + (50 * i), 570, shield ? 'shield' : 'heart');
+        heart.depth = 10;
+        healthBar.push(heart);
+    }
+}
+
+function createPowerUp() {
+    const powerUp = this.physics.add.sprite(800, Phaser.Math.RND.integerInRange(50, 550), 'powerUp');
+    powerUp.angle = 180;
+    powerUp.setVelocityX(-200);
+    powerUp.setVelocityY(Phaser.Math.RND.integerInRange(-200, 200));
+    this.physics.add.overlap(this.player, powerUp, this.gainPower, null, this);
 }
